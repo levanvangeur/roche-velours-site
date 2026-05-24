@@ -20,7 +20,7 @@
 <nav id="navbar">
   <a href="#hero" class="nav-logo" id="nav-logo">Clair-Obscur</a>
   <div style="display:flex;align-items:center;gap:0.75rem;">
-    <a href="/listing.html" class="btn-primary nav-book-btn" id="hero-cta">
+    <a href="https://paray-appart-location.onrender.com" target="_blank" class="btn-primary nav-book-btn" id="hero-cta">
       <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
       Réserver votre prochain séjour
     </a>
@@ -44,6 +44,9 @@
     <div class="scroll-line"></div>
   </div>
 </section>
+
+<!-- ══ QUICKINFO BAR ══════════════════════════════════════════ -->
+<div id="quickinfo-bar"><div id="quickinfo-inner"></div></div>
 
 <!-- ══ ARRIVÉE + DÉPART ═══════════════════════════════════════ -->
 <section id="arrivee-depart" style="background:var(--bg);border-top:1px solid var(--border);">
@@ -88,7 +91,7 @@
     <div class="section-header reveal">
       <p class="text-eyebrow">Guide interactif</p>
       <span class="divider-line"></span>
-      <h2 class="text-section-title">Équipements</h2>
+      <h2 class="text-section-title">Équipements et confort</h2>
       <p style="color:var(--text-muted);margin-top:1rem;font-size:0.9rem;">Cliquez sur un équipement pour les instructions.</p>
     </div>
     <div id="equip-container" class="guide-accordion">
@@ -97,20 +100,6 @@
   </div>
 </section>
 
-<!-- ══ CONFORT ════════════════════════════════════════════════ -->
-<section id="confort" style="background:var(--bg);border-top:1px solid var(--border);">
-  <div class="section">
-    <div class="section-header reveal">
-      <p class="text-eyebrow">Espaces & prestations</p>
-      <span class="divider-line"></span>
-      <h2 class="text-section-title">Confort</h2>
-      <p style="color:var(--text-muted);margin-top:1rem;font-size:0.9rem;">Cliquez sur un élément pour en savoir plus.</p>
-    </div>
-    <div id="confort-container" class="guide-accordion">
-      <div class="skeleton" style="height:160px;border-radius:2px;"></div>
-    </div>
-  </div>
-</section>
 
 <!-- ══ STATIONNEMENT ══════════════════════════════════════════ -->
 <section id="stationnement" style="background:var(--bg);border-top:1px solid var(--border);">
@@ -279,6 +268,14 @@
           <textarea class="adm-input" id="dp-desc" rows="4" placeholder="Description détaillée…"></textarea>
         </div>
         <div class="adm-form-group">
+          <label class="adm-label">Adresse complète</label>
+          <input type="text" class="adm-input" id="dp-address" placeholder="14 Rue Denis Papin, 71600 Paray-le-Monial">
+        </div>
+        <div class="adm-form-group">
+          <label class="adm-label">Voyageurs max</label>
+          <input type="text" class="adm-input" id="dp-max-guests" placeholder="4 voyageurs max">
+        </div>
+        <div class="adm-form-group">
           <label class="adm-label">Statut</label>
           <select class="adm-input" id="dp-active">
             <option value="1">Actif</option>
@@ -377,6 +374,10 @@
       <div class="adm-form-group">
         <label class="adm-label">Heure check-in</label>
         <input type="time" class="adm-input" id="dr-checkin-time">
+      </div>
+      <div class="adm-form-group">
+        <label class="adm-label">Code boîte à clés</label>
+        <input type="text" class="adm-input" id="dr-key-box" placeholder="1234#">
       </div>
       <div class="adm-form-group">
         <label class="adm-label">Instructions <span style="font-weight:400;color:var(--adm-text-dim,#666);">— une ligne = une étape</span></label>

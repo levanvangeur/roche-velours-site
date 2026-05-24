@@ -47,16 +47,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 function renderAll(data) {
   updateMeta(data);
   renderHero(data);
+  renderQuickInfo(data);
   renderArrivee(data.rules);
   renderDepart(data.rules);
   renderWifi(data.rules);
   renderEquipements(data.rooms || []);
-  renderConfort(data.rooms || []);
   renderStationnement(data.rules);
   renderReglement(data.rules);
   renderContact(data.settings);
   renderDecouvrir(data.rules);
   setTimeout(() => lucide.createIcons(), 60);
+}
+
+function renderQuickInfo(data) {
+  const bar = document.getElementById('quickinfo-inner');
+  if (!bar) return;
+  const r = data.rules    || {};
+  const s = data.settings || {};
+
+  const fmtTime = t => t ? t.replace(':', 'h') : null;
+  const firstLine = txt => txt ? txt.split('\n').map(l => l.trim()).filter(Boolean)[0] || null : null;
+
+  const chips = [
+    { icon: 'log-in',  label: 'Arrivée',       value: fmtTime(r.check_in_time),          anchor: '#arrivee-depart' },
+    { icon: 'key',     label: 'Boîte à clés',  value: r.key_box_code || null,             anchor: '#arrivee-depart' },
+    { icon: 'map-pin', label: 'Adresse',        value: data.address   || null,             anchor: '#localisation'   },
+    { icon: 'car',     label: 'Parking',        value: firstLine(r.parking_instructions),  anchor: '#stationnement'  },
+    { icon: 'wifi',    label: 'Wi-Fi',          value: r.wifi_name    || null,             anchor: '#wifi'           },
+    { icon: 'log-out', label: 'Départ',         value: fmtTime(r.check_out_time),          anchor: '#arrivee-depart' },
+    { icon: 'phone',   label: 'Contact',        value: s.help_phone   || null,             anchor: '#contact'        },
+    { icon: 'users',   label: 'Voyageurs max',  value: data.max_guests || null,            anchor: null              },
+  ].filter(c => c.value);
+
+  if (!chips.length) { bar.innerHTML = ''; return; }
+
+  bar.innerHTML = chips.map(c => `
+    <a class="qi-chip" href="${c.anchor || 'javascript:void(0)'}"
+       onclick="${c.anchor ? `event.preventDefault();document.querySelector('${c.anchor}')?.scrollIntoView({behavior:'smooth'})` : ''}">
+      <div class="qi-chip-left">
+        <i data-lucide="${c.icon}"></i>
+        <span class="qi-label">${c.label}</span>
+      </div>
+      <span class="qi-value">${esc(c.value)}</span>
+    </a>`).join('');
+  setTimeout(() => lucide.createIcons({ nodes: bar.querySelectorAll('[data-lucide]') }), 30);
 }
 
 function updateMeta(data) {
@@ -206,11 +240,30 @@ function renderWifi(rules) {
         </button>
       </div>
     </div>`;
-  c.innerHTML = `<div class="wifi-card reveal">
-    <div class="wifi-card-icon"><i data-lucide="wifi" style="width:28px;height:28px;color:var(--gold);"></i></div>
-    ${rules.wifi_name     ? makeCopiable(rules.wifi_name,     'Réseau') : ''}
-    ${rules.wifi_password ? makeCopiable(rules.wifi_password, 'Mot de passe') : ''}
-  </div>`;
+  const makeField = (label, value) => `
+    <div class="wifi-field reveal">
+      <p class="wifi-field-label">${label}</p>
+      <div class="wifi-field-row">
+        <span class="wifi-value">${value}</span>
+      </div>
+    </div>`;
+
+  c.innerHTML = `
+    <div class="wifi-card reveal">
+      <div class="wifi-card-icon"><i data-lucide="wifi" style="width:28px;height:28px;color:var(--gold);"></i></div>
+      ${rules.wifi_name     ? makeCopiable(rules.wifi_name,     'Réseau') : ''}
+      ${rules.wifi_password ? makeCopiable(rules.wifi_password, 'Mot de passe') : ''}
+    </div>
+    <div class="section-header reveal" style="margin-top:5rem;">
+      <p class="text-eyebrow">Literie</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Linge de maison</h2>
+    </div>
+    <div class="wifi-card reveal">
+      <div class="wifi-card-icon"><i data-lucide="shirt" style="width:28px;height:28px;color:var(--gold);"></i></div>
+      ${makeField('Linge de maison', 'Draps &amp; serviettes fournis')}
+      ${makeField('Fin de séjour', 'Merci de déposer le linge dans les panières')}
+    </div>`;
   setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
 }
 
@@ -629,10 +682,12 @@ function populateRoomSelects() {
 // ── Info logement ──
 async function adminLoadInfo() {
   if (!propertyData) return;
-  document.getElementById('dp-name').value    = propertyData.name || '';
-  document.getElementById('dp-tagline').value = propertyData.tagline || '';
-  document.getElementById('dp-desc').value    = propertyData.description || '';
-  document.getElementById('dp-active').value  = String(propertyData.active ?? 1);
+  document.getElementById('dp-name').value       = propertyData.name || '';
+  document.getElementById('dp-tagline').value    = propertyData.tagline || '';
+  document.getElementById('dp-desc').value       = propertyData.description || '';
+  document.getElementById('dp-address').value    = propertyData.address || '';
+  document.getElementById('dp-max-guests').value = propertyData.max_guests || '';
+  document.getElementById('dp-active').value     = String(propertyData.active ?? 1);
   adminLoadHeroGrid();
 }
 
@@ -661,6 +716,8 @@ window.adminSaveProp = async function(e) {
       name:        document.getElementById('dp-name').value.trim(),
       tagline:     document.getElementById('dp-tagline').value.trim(),
       description: document.getElementById('dp-desc').value.trim(),
+      address:     document.getElementById('dp-address').value.trim(),
+      max_guests:  document.getElementById('dp-max-guests').value.trim(),
       active:      document.getElementById('dp-active').value,
     });
     toast('Logement mis à jour');
@@ -826,6 +883,7 @@ async function adminLoadRules() {
     const r = await apiFetch(`/api/rules/${PROPERTY_ID}`, false);
     document.getElementById('dr-checkin-time').value  = r.check_in_time  || '15:00';
     document.getElementById('dr-checkout-time').value = r.check_out_time || '11:00';
+    document.getElementById('dr-key-box').value       = r.key_box_code || '';
     document.getElementById('dr-checkin-inst').value  = r.check_in_instructions  || '';
     document.getElementById('dr-checkout-inst').value = r.check_out_instructions || '';
     document.getElementById('dr-wifi-name').value     = r.wifi_name || '';
@@ -842,6 +900,7 @@ window.adminSaveRules = async function() {
     await apiFetch(`/api/rules/${PROPERTY_ID}`, true, 'PUT', {
       check_in_time:          document.getElementById('dr-checkin-time').value,
       check_out_time:         document.getElementById('dr-checkout-time').value,
+      key_box_code:           document.getElementById('dr-key-box').value,
       check_in_instructions:  document.getElementById('dr-checkin-inst').value,
       check_out_instructions: document.getElementById('dr-checkout-inst').value,
       wifi_name:              document.getElementById('dr-wifi-name').value,
