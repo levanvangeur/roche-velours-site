@@ -56,6 +56,8 @@ function renderAll(data) {
   renderReglement(data.rules);
   renderContact(data.settings);
   renderDecouvrir(data.rules);
+  renderPLM();
+  initMap();
   setTimeout(() => lucide.createIcons(), 60);
 }
 
@@ -65,31 +67,56 @@ function renderQuickInfo(data) {
   const r = data.rules    || {};
   const s = data.settings || {};
 
-  const fmtTime = t => t ? t.replace(':', 'h') : null;
+  const fmtTime   = t => t ? t.replace(':', 'h') : null;
   const firstLine = txt => txt ? txt.split('\n').map(l => l.trim()).filter(Boolean)[0] || null : null;
+  const scroll    = anchor => `event.preventDefault();document.querySelector('${anchor}')?.scrollIntoView({behavior:'smooth'})`;
+
+  const checkin  = fmtTime(r.check_in_time);
+  const checkout = fmtTime(r.check_out_time);
 
   const chips = [
-    { icon: 'log-in',  label: 'Arrivée',       value: fmtTime(r.check_in_time),          anchor: '#arrivee-depart' },
-    { icon: 'key',     label: 'Boîte à clés',  value: r.key_box_code || null,             anchor: '#arrivee-depart' },
-    { icon: 'map-pin', label: 'Adresse',        value: data.address   || null,             anchor: '#localisation'   },
-    { icon: 'car',     label: 'Parking',        value: firstLine(r.parking_instructions),  anchor: '#stationnement'  },
-    { icon: 'wifi',    label: 'Wi-Fi',          value: r.wifi_name    || null,             anchor: '#wifi'           },
-    { icon: 'log-out', label: 'Départ',         value: fmtTime(r.check_out_time),          anchor: '#arrivee-depart' },
-    { icon: 'phone',   label: 'Contact',        value: s.help_phone   || null,             anchor: '#contact'        },
-    { icon: 'users',   label: 'Voyageurs max',  value: data.max_guests || null,            anchor: null              },
+    { icon: 'car',   label: 'Parking', value: firstLine(r.parking_instructions), anchor: '#stationnement' },
+    { icon: 'wifi',  label: 'Wi-Fi',   value: r.wifi_name || null,   subvalue: r.wifi_password || null, anchor: '#wifi' },
+    { icon: 'phone', label: 'Contact', value: s.help_phone || null,               anchor: '#contact'       },
   ].filter(c => c.value);
 
-  if (!chips.length) { bar.innerHTML = ''; return; }
+  if (!checkin && !checkout && !chips.length) { bar.innerHTML = ''; return; }
 
-  bar.innerHTML = chips.map(c => `
-    <a class="qi-chip" href="${c.anchor || 'javascript:void(0)'}"
-       onclick="${c.anchor ? `event.preventDefault();document.querySelector('${c.anchor}')?.scrollIntoView({behavior:'smooth'})` : ''}">
-      <div class="qi-chip-left">
+  let html = '';
+
+  if (checkin || checkout) {
+    const both = checkin && checkout;
+    html += `<div class="qi-time-pair${both ? '' : ' qi-time-pair--single'}">`;
+    if (checkin) html += `
+      <a class="qi-time-cell" href="#arrivee-depart" onclick="${scroll('#arrivee-depart')}">
+        <i data-lucide="log-in" class="qi-time-icon" style="width:17px;height:17px;"></i>
+        <span class="qi-time-label">Arrivée</span>
+        <span class="qi-time-value">${esc(checkin)}</span>
+      </a>`;
+    if (both) html += `<div class="qi-time-sep"></div>`;
+    if (checkout) html += `
+      <a class="qi-time-cell" href="#arrivee-depart" onclick="${scroll('#arrivee-depart')}">
+        <i data-lucide="log-out" class="qi-time-icon" style="width:17px;height:17px;"></i>
+        <span class="qi-time-label">Départ</span>
+        <span class="qi-time-value">${esc(checkout)}</span>
+      </a>`;
+    html += `</div>`;
+  }
+
+  html += chips.map(c => `
+    <a class="qi-chip" href="${c.anchor}" onclick="${scroll(c.anchor)}">
+      <div class="qi-chip-icon">
         <i data-lucide="${c.icon}"></i>
-        <span class="qi-label">${c.label}</span>
       </div>
-      <span class="qi-value">${esc(c.value)}</span>
+      <div class="qi-chip-content">
+        <div class="qi-label">${c.label}</div>
+        <div class="qi-value">${esc(c.value)}</div>
+        ${c.subvalue ? `<div class="qi-subvalue">${esc(c.subvalue)}</div>` : ''}
+      </div>
+      <i data-lucide="chevron-right" class="qi-arrow" style="width:14px;height:14px;"></i>
     </a>`).join('');
+
+  bar.innerHTML = html;
   setTimeout(() => lucide.createIcons({ nodes: bar.querySelectorAll('[data-lucide]') }), 30);
 }
 
@@ -132,13 +159,13 @@ function startHeroSlideshow(images) {
   const slides = images.map((img, i) => {
     const div = document.createElement('div');
     div.className = 'hero-slide' + (i === 0 ? ' active' : '');
-    div.style.backgroundImage = `url(/uploads/${img.filename})`;
+    div.style.backgroundImage = `url(${imgUrl(img.filename)})`;
     hero.insertBefore(div, overlay);
     return div;
   });
 
   // Précharger toutes les images en arrière-plan
-  images.forEach(img => { const i = new Image(); i.src = `/uploads/${img.filename}`; });
+  images.forEach(img => { const i = new Image(); i.src = imgUrl(img.filename); });
 
   if (slides.length < 2) return; // une seule photo → pas besoin du timer
 
@@ -153,7 +180,7 @@ function startHeroSlideshow(images) {
 
     // Une fois la transition terminée, on masque l'ancienne slide
     setTimeout(() => slides[prev].classList.remove('leaving'), 2200);
-  }, 5500); // délai entre chaque photo
+  }, 3800); // délai entre chaque photo
 }
 
 
@@ -260,7 +287,7 @@ function renderWifi(rules) {
       <h2 class="text-section-title">Linge de maison</h2>
     </div>
     <div class="wifi-card reveal">
-      <div class="wifi-card-icon"><i data-lucide="shirt" style="width:28px;height:28px;color:var(--gold);"></i></div>
+      <div class="wifi-card-icon"><i data-lucide="bed-double" style="width:28px;height:28px;color:var(--gold);"></i></div>
       ${makeField('Linge de maison', 'Draps &amp; serviettes fournis')}
       ${makeField('Fin de séjour', 'Merci de déposer le linge dans les panières')}
     </div>`;
@@ -308,7 +335,15 @@ function renderContact(settings) {
 
   // Bouton flottant
   if (phone) { document.getElementById('help-phone-num').textContent = phone; document.getElementById('help-phone-link').href = `tel:${phone.replace(/\s/g, '')}`; }
-  if (email) { document.getElementById('help-email-addr').textContent = email; document.getElementById('help-email-link').href = `mailto:${email}`; }
+  if (email) {
+    document.getElementById('help-email-addr').textContent = email;
+    document.getElementById('help-email-link').href = `mailto:${email}`;
+    const invoiceLink = document.getElementById('help-invoice-link');
+    const subject = encodeURIComponent('Demande de facture');
+    const body = encodeURIComponent('Bonjour,\n\nJe souhaite recevoir une facture pour mon séjour.\n\nMerci.');
+    invoiceLink.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    invoiceLink.style.display = '';
+  }
 
   c.innerHTML = `
     <div class="contact-grid reveal">
@@ -340,6 +375,94 @@ function renderDecouvrir(rules) {
   setTimeout(() => setupScrollReveal(), 60);
 }
 
+// ══════════════════════════════════════════════════════════
+// ── BUS PLM ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+function renderPLM() {
+  const c = document.getElementById('plm-container');
+  if (!c) return;
+  const stops = ["Gare SNCF","Denis Papin","Lamartine","Hôtel de Ville","Gambetta","Clunisois","Les Aqueducs","Pont de l'Europe","Leclerc","Intermarché","Beaumont","Sous Roche","La Madeleine","Breuil","Zone Artisanale","Beausoleil","Résidence du Lac","Moulin Liron","La Chapelle","Varennes","Saint-Nicolas","Croix Blanche","Lourdon","Montrichard","Bergesserin","Tramayes","Saint-Point","La Clayette","Chauffailles","Saint-Bonnet","Cours-la-Ville","Thizy","Amplepuis","Tarare","Lyon-Perrache"];
+  const deps  = ["07:05","08:10","09:15","10:20","11:25","12:30","13:35","14:40","15:45","16:50","17:55","18:00"];
+  c.innerHTML = `
+    <div class="plm-card reveal">
+      <div class="plm-header">
+        <div class="plm-badge">PLM</div>
+        <div><p class="plm-title">Ligne Paray-le-Monial → Lyon</p><p class="plm-sub">Lun – Sam · Depuis la Gare SNCF</p></div>
+      </div>
+      <div class="plm-body">
+        <div class="plm-col">
+          <p class="plm-col-title">Départs</p>
+          <div class="plm-times">${deps.map(d=>`<span class="plm-time">${d}</span>`).join('')}</div>
+        </div>
+        <div class="plm-col">
+          <p class="plm-col-title">Arrêts principaux</p>
+          <div class="plm-stops">${stops.slice(0,8).map(s=>`<span class="plm-stop">${s}</span>`).join('')}<span class="plm-stop plm-stop-more">+${stops.length-8} arrêts…</span></div>
+        </div>
+      </div>
+    </div>`;
+  setTimeout(() => setupScrollReveal(), 60);
+}
+
+// ══════════════════════════════════════════════════════════
+// ── CARTE LEAFLET ─────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+async function initMap() {
+  if (!document.getElementById('map')) return;
+  if (window._mapInstance) { window._mapInstance.remove(); window._mapInstance = null; }
+
+  let lat = 46.4510, lng = 4.1170; // centre Paray-le-Monial par défaut
+  const addr = propertyData?.address;
+  if (addr) {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr)}&format=json&limit=1`);
+      const d = await r.json();
+      if (d[0]) { lat = parseFloat(d[0].lat); lng = parseFloat(d[0].lon); }
+    } catch(_) {}
+  }
+
+  const map = L.map('map', { zoomControl: true, scrollWheelZoom: false });
+  window._mapInstance = map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Parc du Moulin Liron
+  L.polygon([[46.4468,4.1092],[46.4478,4.1118],[46.4455,4.1128],[46.4445,4.1102]],
+    { color:'#4a7c59', fillColor:'#4a7c59', fillOpacity:0.18, weight:1.5 })
+    .bindPopup('<b>Parc du Moulin Liron</b><br>Promenade au bord de la Bourbince').addTo(map);
+
+  // Voie ferrée (fondu décoratif)
+  L.polyline([[46.4528,4.1080],[46.4510,4.1095],[46.4495,4.1115],[46.4478,4.1140],[46.4460,4.1165]],
+    { color:'#888', weight:3, opacity:0.35, dashArray:'6,6' }).addTo(map);
+
+  // Marqueur propriété
+  const propIcon = L.divIcon({ className:'', html:`<div style="width:16px;height:16px;background:var(--gold,#c9a84c);border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div>`, iconAnchor:[8,8] });
+  L.marker([lat, lng], { icon: propIcon }).bindPopup(`<b>${esc(propertyData?.name || 'Logement')}</b>`).addTo(map);
+
+  // Parkings gratuits à proximité via Overpass
+  const parkingMarkers = [];
+  try {
+    const delta = 0.012;
+    const bbox  = `${lat-delta},${lng-delta},${lat+delta},${lng+delta}`;
+    const query = `[out:json][timeout:8];(node["amenity"="parking"]["fee"!~"^yes$"](${bbox});way["amenity"="parking"]["fee"!~"^yes$"](${bbox}););out center 8;`;
+    const res   = await fetch('https://overpass.kumi.systems/api/interpreter', { method:'POST', body:`data=${encodeURIComponent(query)}` });
+    const json  = await res.json();
+    const parkIcon = L.divIcon({ className:'', html:`<div style="width:12px;height:12px;background:#3a86ff;border:2px solid #fff;border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,0.4);"></div>`, iconAnchor:[6,6] });
+    (json.elements || []).forEach(el => {
+      const plat = el.lat ?? el.center?.lat;
+      const plng = el.lon ?? el.center?.lon;
+      if (!plat || !plng) return;
+      const dist = Math.round(Math.sqrt(Math.pow((plat-lat)*111000,2)+Math.pow((plng-lng)*111000*Math.cos(lat*Math.PI/180),2)));
+      L.marker([plat, plng], { icon: parkIcon }).bindPopup(`<b>Parking gratuit</b><br>~${dist} m`).addTo(map);
+      parkingMarkers.push([plat, plng]);
+    });
+  } catch(_) {}
+
+  const allPoints = [[lat, lng], ...parkingMarkers];
+  map.fitBounds(allPoints, { padding:[45,45], maxZoom:17 });
+}
+
 
 function renderBooking(property, bookings) {
   const container = document.getElementById('booking-container');
@@ -348,7 +471,7 @@ function renderBooking(property, bookings) {
     container.innerHTML = `<div style="text-align:center;padding:3rem;border:1px solid var(--border);color:var(--text-muted);">Lien de réservation à configurer dans le panneau admin.</div>`;
     return;
   }
-  const imgSrc = property.main_image ? `/uploads/${property.main_image}` : null;
+  const imgSrc = property.main_image ? imgUrl(property.main_image) : null;
   const imgHtml = imgSrc
     ? `<img src="${imgSrc}" alt="${esc(property.name)}" loading="lazy">`
     : `<div style="width:100%;height:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;"><i data-lucide="home" style="width:48px;height:48px;color:var(--border-light);"></i></div>`;
@@ -700,7 +823,7 @@ async function adminLoadHeroGrid() {
     grid.innerHTML = imgs.length
       ? imgs.map(img => `
           <div style="position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--adm-border);border-radius:3px;">
-            <img src="/uploads/${esc(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
+            <img src="${imgUrl(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
             <button onclick="adminDeleteHeroImage(${img.id})"
               style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.75);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
           </div>`).join('')
@@ -1127,7 +1250,7 @@ window.openHotspotModal = async function(imageId, filename, roomName) {
   hmPending = null;
 
   document.getElementById('hm-room-name').textContent = roomName;
-  document.getElementById('hm-photo').src = `/uploads/${filename}`;
+  document.getElementById('hm-photo').src = imgUrl(filename);
   document.getElementById('hotspot-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 
@@ -1238,6 +1361,11 @@ function iconSvg(name, size = 14) {
   return `<i data-lucide="${map[name]||name||'wrench'}" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle;"></i>`;
 }
 
+
+function imgUrl(filename) {
+  if (!filename) return '';
+  return /^https?:\/\//.test(filename) ? filename : '/uploads/' + filename;
+}
 // Échappe HTML (protection XSS)
 function esc(str) {
   if (!str) return '';

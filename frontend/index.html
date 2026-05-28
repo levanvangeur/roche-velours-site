@@ -13,6 +13,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -149,6 +151,31 @@
   </div>
 </section>
 
+<!-- ══ TRANSPORTS ════════════════════════════════════════════ -->
+<section id="transports" style="background:var(--surface);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Se déplacer</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Bus PLM</h2>
+      <p style="color:var(--text-muted);margin-top:0.75rem;font-size:0.9rem;">Navette urbaine · Lundi – Samedi · 7h–19h · 1 départ / heure</p>
+    </div>
+    <div id="plm-container" style="margin-top:2.5rem;"></div>
+  </div>
+</section>
+
+<!-- ══ LOCALISATION ══════════════════════════════════════════ -->
+<section id="localisation" style="background:var(--bg);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Situation</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Localisation</h2>
+    </div>
+    <div id="map" style="height:420px;border-radius:2px;margin-top:2rem;border:1px solid var(--border);"></div>
+  </div>
+</section>
+
 <!-- ══ FOOTER ═════════════════════════════════════════════════ -->
 <footer>
   <p id="footer-name" style="font-family:var(--font-display);font-size:1.1rem;font-weight:300;color:var(--text-muted);">Clair-Obscur</p>
@@ -188,6 +215,11 @@
       <i data-lucide="mail" style="width:16px;height:16px;color:var(--gold);flex-shrink:0;"></i>
       <div><p style="font-size:0.72rem;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">Email</p>
       <p id="help-email-addr" style="font-size:0.88rem;color:var(--text);">contact@example.fr</p></div>
+    </a>
+    <a id="help-invoice-link" href="#" class="help-contact-row" style="display:none;">
+      <i data-lucide="receipt" style="width:16px;height:16px;color:var(--gold);flex-shrink:0;"></i>
+      <div><p style="font-size:0.72rem;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">Facture</p>
+      <p style="font-size:0.88rem;color:var(--text);">Demander ma facture</p></div>
     </a>
   </div>
 </div>
