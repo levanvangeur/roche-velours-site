@@ -6,7 +6,9 @@
     "region": "Bourgogne du Sud · Saône-et-Loire",
     "motto": "Votre séjour, notre priorité",
     "logo": "images/logo.png",
-    "bookingUrl": "https://reservation.logementsparay.fr"
+    "bookingUrl": "https://reservation.logementsparay.fr",
+    "reviewUrlBooking": "https://www.booking.com/hotel/fr/le-roche-velour.fr.html",
+    "reviewUrlAirbnb": "https://www.airbnb.fr/rooms/1618333239759130946"
   },
   "welcome": {
     "title": "Bienvenue",
@@ -686,17 +688,77 @@
     "practical",
     "rules",
     "departure",
+    "goodbye",
     "comfort",
-    "gallery",
+    "eat",
     "discover",
     "stroll",
-    "eat",
     "drinks",
     "services",
     "shops",
     "escapes",
     "digoinCharolles",
-    "numbers",
-    "goodbye"
-  ]
+    "gallery",
+    "numbers"
+  ],
+  "reviews": {
+    "intro": "Un aperçu sincère de ce que nos voyageurs retiennent de leur séjour.",
+    "source": "Booking.com",
+    "items": [
+      {
+        "author": "Guillaume",
+        "country": "France",
+        "score": "10",
+        "text": "Très spacieux et bien équipé. L'appartement est très propre. Il est très bien situé : accès à pied centre-ville, voie verte, monuments, etc."
+      },
+      {
+        "author": "Cédric",
+        "country": "France",
+        "score": "10",
+        "text": "Logement agréable, propre, très bien placé et au calme. L'hôte était très arrangeant. Le logement est très bien équipé et neuf."
+      },
+      {
+        "author": "Nathalie",
+        "country": "France",
+        "score": "10",
+        "text": "Le calme malgré la proximité des voies ferrées, la fraîcheur malgré la chaleur et le caractère moderne et spacieux de l'appartement."
+      },
+      {
+        "author": "Catherine",
+        "country": "France",
+        "score": "10",
+        "text": "Tout. Emplacement et facilité à trouver, déco et grand espace, disponibilité de l'interlocuteur en cas de questions. Merci."
+      },
+      {
+        "author": "Philippe",
+        "country": "France",
+        "score": "10",
+        "text": "La fraîcheur, le calme, la proximité avec le centre, la propreté, le grand espace, les livres et les jeux, la réactivité des propriétaires."
+      },
+      {
+        "author": "Pillonel",
+        "country": "Suisse",
+        "score": "10",
+        "text": "L'espace, l'agencement, la déco et le fait que l'appart était frais, ce qui avec cette période de canicule, est fort appréciable."
+      },
+      {
+        "author": "Elisa",
+        "country": "France",
+        "score": "9,0",
+        "text": "Soin de l'aménagement du lieu. Bien-être."
+      },
+      {
+        "author": "Emmanuel",
+        "country": "France",
+        "score": "9,0",
+        "text": "Très grand."
+      },
+      {
+        "author": "Laura",
+        "country": "France",
+        "score": "8,0",
+        "text": "L'appartement est spacieux et très bien décoré."
+      }
+    ]
+  }
 }
